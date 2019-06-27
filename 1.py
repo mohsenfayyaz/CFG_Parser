@@ -292,6 +292,9 @@ class CFG:
             if rule.lhs not in self.generative_vars:
                 self.remove_products_with_var(rule.lhs)
                 self.rules.remove(rule)
+            else:
+                if len(rule.rhs) == 0:
+                    self.rules.remove(rule)
 
     # 1.3.1 REMOVE NOT REACHABLES-----------
     def make_reachable_vars(self, start_var, visited):
