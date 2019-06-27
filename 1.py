@@ -352,7 +352,8 @@ class CFG:
             for product in rule.rhs:
                 if (len(product) > 2) or (len(product) == 0) or \
                         (len(product) == 1 and product.isupper()) or \
-                        (len(product) == 2 and (product[0].islower() or product[1].islower())):
+                        (len(product) == 2 and (product[0].islower() or product[1].islower())) or \
+                        (len(product) == 1 and product==EMPTY):
                     is_cnf = False
         return is_cnf
 
