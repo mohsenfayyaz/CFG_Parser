@@ -341,9 +341,23 @@ class CFG:
         cyk = CYK(self.rules)
         cyk.run()
 
+    # -----------------------
+
+    def is_in_cnf(self):
+        is_cnf = True
+        for rule in self.rules:
+            for product in rule.rhs:
+                if (len(product) > 2) or \
+                        (len(product) == 1 and product.isupper()) or \
+                        (len(product) == 2 and (product[0].islower() or product[1].islower())):
+                    is_cnf = False
+        return is_cnf
+
 cfg = CFG()
 cfg.input_rules()
-cfg.print_rules()
+# cfg.print_rules()
+print("True" if cfg.is_in_cnf() else "False")
+
 print("1.1: Remove e")
 cfg.remove_e()
 cfg.print_rules()
@@ -359,7 +373,7 @@ print()
 print("2: Convert to Chomsky Normal Form")
 cfg.convert_to_CNF()
 cfg.print_rules()
-print("True" if cfg.was_in_cnf() else "False")
+# print("True" if cfg.was_in_cnf() else "False")
 
 print()
 print("2: CYK is ready:")
