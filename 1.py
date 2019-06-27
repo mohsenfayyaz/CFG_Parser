@@ -11,12 +11,68 @@ class Rule:
         self.rhs = rhs
 
 
+class CYK:
+    def __init__(self, rules):
+        self.rules = rules
+        self.matrix = []
+
+    def run(self):
+        input_string = input().replace(" ", "")
+        while input_string != END_CHAR:
+            self.make_matrix(input_string)
+            print("True" if self.start_var_in_last_cell() else "False")
+            self.print_matrix()
+            input_string = input().replace(" ", "")
+
+    def start_var_in_last_cell(self):
+        return START_VAR_CHAR in self.matrix[0][-1]
+
+    def make_matrix(self, string):
+        matrix_len = len(string)
+        matrix = [[set() for k in range(matrix_len)] for j in range(matrix_len)]
+        for i in range(matrix_len):
+            matrix[i][i] = self.find_vars_of_product([string[i]])
+
+        for j in range(matrix_len):
+            for i in range(j, -1, -1):
+                matching_vars = set()
+                for counter in range(1, j-i+1):
+                    left = j - counter
+                    down = (j-i+1) - counter + i
+                    # self.matrix = matrix
+                    # self.print_matrix()
+                    # print(i, left, "|", down, j)
+                    for product_1 in matrix[i][left]:
+                        for product_2 in matrix[down][j]:
+                            concat_vars = [product_1, product_2]
+                            matching_vars.update(self.find_vars_of_product(concat_vars))
+                matrix[i][j].update(matching_vars)
+        self.matrix = matrix
+
+    def find_vars_of_product(self, product):
+        matching_vars = set()
+        for rule in self.rules:
+            for prod in rule.rhs:
+                # print("--->" , prod, product)
+                if prod == product:
+                    matching_vars.add(rule.lhs)
+        return matching_vars
+
+    def print_matrix(self):
+        for x in self.matrix:
+            print(x)
+
+
 class CNF:
     def __init__(self):
-        self.rules = set()
+        self.rules = list()
+        self.was_in_cnf = True
+
+    def was_in_cnf(self):
+        return self.was_in_cnf
 
     def add_rule(self, lhs, rhs):
-        self.rules.add(Rule(lhs, rhs))
+        self.rules.append(Rule(lhs, rhs))
 
     def print_rules(self):
         for rule in self.rules:
@@ -40,6 +96,7 @@ class CNF:
                 for product in rule.rhs:
                     if len(product) > 2:
                         there_was_change = True
+                        self.was_in_cnf = False
                         first_var = product[0]
                         second_var = product[1]
                         product.pop(0)
@@ -68,6 +125,7 @@ class CNF:
             for product in rule.rhs:
                 for i, var_char in enumerate(product):
                     if len(product) > 1 and var_char.islower():
+                        self.was_in_cnf = False
                         if var_char in new_vars:
                             new_var_name = self.make_terminal_style(str(new_vars.index(var_char)))
                         else:
@@ -275,7 +333,13 @@ class CFG:
         self.cnf.reduce_vars_to_2()
         self.rules = self.cnf.get_rules()
 
+    def was_in_cnf(self):
+        return self.cnf.was_in_cnf
 
+    # 3 CYK-----------------------------------------
+    def run_cyk(self):
+        cyk = CYK(self.rules)
+        cyk.run()
 
 cfg = CFG()
 cfg.input_rules()
@@ -295,6 +359,8 @@ print()
 print("2: Convert to Chomsky Normal Form")
 cfg.convert_to_CNF()
 cfg.print_rules()
+print("True" if cfg.was_in_cnf() else "False")
 
 print()
-print("2: Convert to Chomsky Normal Form")
+print("2: CYK is ready:")
+cfg.run_cyk()
